@@ -1,0 +1,63 @@
+<!-- templates/admin/consents_list.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Signed Consent Forms</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        @media print {
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body class="container mt-4">
+    <div class="no-print mb-3">
+        <button onclick="window.print()" class="btn btn-success">Print All</button>
+        <a href="{{ url_for('view_consents') }}" class="btn btn-secondary">Back</a>
+    </div>
+
+    <h3>Signed Salary Advance Consents - {{ month }}/{{ year }}</h3>
+    <hr>
+
+    {% for req in consents %}
+    <div class="mb-5 p-4 border rounded shadow-sm">
+   <p>To: The Manager, <strong>{{ req.employee.bank_name }}</strong></p>
+<strong>Subject:</strong> Salary Advance Consent Authorization</p>
+
+<hr>
+     <p>
+    I, <strong>{{ req.employee.full_name }}</strong>, with Staff ID <strong>{{ req.employee.staff_id }}</strong>, hereby authorize 
+    <strong>{{ req.employee.bank_name }}</strong> to deduct a total amount of 
+    <strong>GHS {{ "%.2f" | format(req.amount + 40) }}</strong> (comprising a salary advance of 
+    <strong>GHS {{ "%.2f"|format(req.amount) }}</strong> and a flat processing fee of <strong>GHS 40.00</strong>) 
+    from my salary account when my monthly salary is credited by the Controller and Accountant General’s Department.
+</p>
+
+<p>
+    I understand that failure to repay this amount within the agreed period will attract a 
+    <strong>12% penalty</strong>, which shall also be deducted from my salary accordingly.
+</p>
+
+<p>
+    I declare that I am providing this consent voluntarily and without any form of coercion, and I fully accept all 
+    the terms and conditions outlined above.
+</p>
+
+<p>
+    I agree to the terms stated and authorize GCB to make the necessary deductions.
+<p><strong>School Name:</strong> {{ req.employee.school_name }}</p>
+<p><strong>Bank Name:</strong> {{ req.employee.bank_name }}</p>
+<p><strong>Account Number:</strong> {{ req.employee.bank_account_number }}</p>
+</p>
+        <p><strong>Signed:</strong> {{ req.signed_name }}<br>
+    <p><strong>Employee Signature: _________</strong></p>
+<p><strong>Official Use:</strong> Verified by ______ Date: ____</p>
+        <strong>Date:</strong> {{ req.consent_date.strftime('%B %d, %Y') }}</p>
+
+        <hr>
+    </div>
+    {% else %}
+    <p>No signed consents found for this period.</p>
+    {% endfor %}
+</body>
+</html>

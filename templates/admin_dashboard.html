@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container mt-5">
+    <h2 class="mb-4">Admin Dashboard</h2>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+    <div class="mb-3">
+        <a href="{{ url_for('add_employee') }}" class="btn btn-primary">Add Employee</a>
+        <a href="{{ url_for('view_salary_requests') }}" class="btn btn-warning">View Salary Requests</a>
+        <a href="{{ url_for('view_consents') }}" class="btn btn-primary">View Signed Consents</a>
+        <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+        <a href="{{ url_for('change_admin_password') }}" class="btn btn-info">Change Password</a>
+    </div>
+
+    <h4 class="mb-3">All Employees</h4>
+    {% if employees %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Full Name</th>
+                        <th>School Name</th>
+                        <th>Staff ID</th>
+                        <th>Bank Name</th>
+                        <th>Account Number</th>
+                         <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in employees %}
+                        <tr>
+                            <td>{{ emp.full_name }}</td>
+                            <td>{{ emp.school_name }}</td>
+                            <td>{{ emp.staff_id }}</td>
+                            <td>{{ emp.bank_name }}</td>
+                            <td>{{ emp.bank_account_number }}</td>
+                            <td>
+<td>
+    <a href="{{ url_for('edit_employee', employee_id=emp.id) }}" class="btn btn-sm btn-secondary">Edit</a>
+    <form action="{{ url_for('delete_employee', employee_id=emp.id) }}" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this employee?');">
+        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+    </form>
+</td>   
+                  </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="text-muted">No employees found.</p>
+    {% endif %}
+</div>
+</body>
+</html>

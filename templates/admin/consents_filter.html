@@ -1,0 +1,22 @@
+<!-- templates/admin/consents_filter.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Filter Consents</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body class="container mt-5">
+    <h3>View Consents by Month and Year</h3>
+    <form method="get" action="{{ url_for('view_consents') }}">
+        <div class="form-group">
+            <label for="month">Month (1–12)</label>
+            <input type="number" name="month" id="month" class="form-control" min="1" max="12" required>
+        </div>
+        <div class="form-group">
+            <label for="year">Year (e.g., 2025)</label>
+            <input type="number" name="year" id="year" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">View Consents</button>
+    </form>
+</body>
+</html>
