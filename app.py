@@ -1,10 +1,11 @@
-
 import os
-from datetime import datetime
+from datetime import datetime, timezone  # ✅ updated to include timezone
 from functools import wraps
 from sqlalchemy import extract
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
+from alembic.command import upgrade
+from alembic.config import Config
 
 # Flask-related imports
 from flask import (
@@ -17,8 +18,7 @@ from flask_login import (
 )
 from flask_migrate import Migrate
 
-# PDF library
-
+# PDF library (if needed)
 
 # Local modules
 from extensions import db, login_manager
@@ -32,7 +32,11 @@ from utils import generate_unique_pin_code
 # Load environment variables
 load_dotenv()
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+
+# ✅ Manually set the secret key for session and CSRF protection
+app.secret_key = 'gfh34@!kdj983laksdnjgfhkjsd8304nvks'
+
+# ✅ If you're using environment variables for the database, keep this line
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 # ✅ Admin-only route decorator
 def admin_required(f):
@@ -424,19 +428,24 @@ def download_consent(request_id):
     response.headers['Content-Disposition'] = f'attachment; filename=consent_form_{employee.staff_id}.pdf'
 
     return response
-if __name__ == '__main__':
-    with app.app_context():
-        upgrade()  # Apply Alembic migrations
+admin_created = False  # ✅ Define the flag before the route or request hook
 
-        if not Admin.query.filter_by(username='admin').first():
+@app.before_request
+def create_test_admin_once():
+    global admin_created
+    if not admin_created:
+        existing_admin = Admin.query.filter_by(username="admin").first()
+        if not existing_admin:
             test_admin = Admin(
-                username='admin',
-                password_hash=generate_password_hash('admin123')
+                username="admin",
+                password=generate_password_hash("admin123", method="pbkdf2:sha256", salt_length=16)
             )
             db.session.add(test_admin)
             db.session.commit()
-            print("Admin created: admin / admin123")
+            print("✅ Test admin created: username=admin, password=admin123")
         else:
-            print("Admin already exists.")
+            print("ℹ️ Test admin already exists.")
+        admin_created = True
 
+if __name__ == "__main__":
     app.run(debug=True)
