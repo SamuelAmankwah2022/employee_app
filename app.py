@@ -426,7 +426,7 @@ def download_consent(request_id):
     return response
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()
+        upgrade()  # Apply Alembic migrations
 
         if not Admin.query.filter_by(username='admin').first():
             test_admin = Admin(
