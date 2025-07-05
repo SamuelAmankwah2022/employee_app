@@ -128,7 +128,8 @@ def employee_login():
 @login_required
 def employee_dashboard():
     if isinstance(current_user, Employee):
-        return render_template('employee_dashboard.html', current_user=current_user)
+        latest_request = SalaryAdvanceRequest.query.filter_by(employee_id=current_user.id).order_by(SalaryAdvanceRequest.date_submitted.desc()).first()
+        return render_template('employee_dashboard.html', current_user=current_user, latest_request=latest_request)
     return redirect(url_for('admin_dashboard'))
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():

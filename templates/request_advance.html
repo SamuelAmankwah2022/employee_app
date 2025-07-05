@@ -9,21 +9,44 @@
         rel="stylesheet"
         integrity="sha384-ENjdO4Dr2bkBIFxQpeoZ3HUhumFF+3pyYZc13NAt2Q8lSkK9k4CkF0pJpXze2N3h" 
         crossorigin="anonymous">
+    <style>
+        .motivational-banner {
+            background-color: #e7f4ff;
+            border-left: 5px solid #0d6efd;
+            padding: 1rem;
+            border-radius: 8px;
+            color: #333;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
 <body class="bg-light">
     <div class="container py-5">
         <h2 class="mb-4 text-center">Request Salary Advance</h2>
+
+        <div class="motivational-banner text-center">
+            Why borrow from friends when you can get a digital salary advance — protect your dignity and peace of mind.
+        </div>
+
         <form method="POST" class="card p-4 shadow-sm">
             <div class="mb-3">
                 <label for="amount" class="form-label">Amount (GHS 200 – 500)</label>
-                <input type="number" name="amount" id="amount" class="form-control" min="200" max="500" required>
+                <input type="number" name="amount" id="amount" class="form-control form-control-lg" min="200" max="500" required>
             </div>
             <div class="d-grid">
-                <button type="submit" class="btn btn-primary">Submit Request</button>
+                <button type="submit" class="btn btn-primary btn-lg">🚀 Submit Request Now</button>
             </div>
         </form>
-        <div class="text-center mt-3">
-            <a href="{{ url_for('employee_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+
+        <div class="text-center mt-4">
+            <a href="{{ url_for('employee_dashboard') }}" class="btn btn-outline-secondary">← Back to Dashboard</a>
         </div>
     </div>
 

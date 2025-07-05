@@ -1,29 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Employee Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <title>Employee Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    .welcome-text {
+      font-size: 1.8rem;
+      color: #2b2b2b;
+      margin-bottom: 0.5rem;
+    }
+
+    .motive-message {
+      background-color: #eaf7ff;
+      border-left: 5px solid #3498db;
+      padding: 1rem;
+      font-size: 1.1rem;
+      color: #333;
+      margin-bottom: 1.5rem;
+      border-radius: 8px;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 <body class="bg-light">
 
 <div class="container my-5">
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <h2 class="card-title text-center mb-4">Welcome, {{ current_user.full_name }}</h2>
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+      <h2 class="welcome-text text-center">Welcome, {{ current_user.full_name }}</h2>
 
-            <ul class="list-group mb-4">
-                <li class="list-group-item"><strong>School:</strong> {{ current_user.school_name }}</li>
-                <li class="list-group-item"><strong>Staff ID:</strong> {{ current_user.staff_id }}</li>
-            </ul>
+      <div class="motive-message text-center">
+        Why borrow from friends or others when you can get a salary advance <strong>digitally</strong> — maintaining your dignity and respect.
+      </div>
 
-            <div class="d-grid gap-2">
-                <a href="{{ url_for('request_advance') }}" class="btn btn-success">Request Salary Advance</a>
-                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">Logout</a>
-            </div>
-        </div>
+      <ul class="list-group mb-4">
+{% if latest_request %}
+<div class="alert alert-info mt-3 shadow-sm">
+  <h5 class="mb-2">📝 Latest Request Summary</h5>
+  <p><strong>Amount:</strong> GHS {{ latest_request.amount }}</p>
+  <p><strong>Status:</strong>
+    {% if latest_request.status == 'Pending' %}
+      <span class="badge bg-warning text-dark">Pending</span>
+    {% elif latest_request.status == 'Approved' %}
+      <span class="badge bg-success">Approved</span>
+    {% elif latest_request.status == 'Rejected' %}
+      <span class="badge bg-danger">Rejected</span>
+    {% else %}
+      <span class="badge bg-secondary">{{ latest_request.status }}</span>
+    {% endif %}
+  </p>
+  <p><strong>Requested On:</strong> {{ latest_request.date_submitted.strftime('%B %d, %Y') }}</p>
+</div>
+{% endif %}
+        <li class="list-group-item"><strong>School:</strong> {{ current_user.school_name }}</li>
+        <li class="list-group-item"><strong>Staff ID:</strong> {{ current_user.staff_id }}</li>
+      </ul>
+
+      <div class="d-grid gap-2">
+        <a href="{{ url_for('request_advance') }}" class="btn btn-success btn-lg">💰 Request Salary Advance</a>
+        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Logout</a>
+      </div>
     </div>
+  </div>
 </div>
 
 </body>
