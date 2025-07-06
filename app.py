@@ -6,7 +6,9 @@ from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
 from alembic.command import upgrade
 from alembic.config import Config
-
+from forms import SalaryAdvanceRequestForm  # ✅ Import your form
+from forms import PinCodeForm  # ✅ Make sure this is imported
+from forms import ConsentForm  # ✅ Make sure this is at the top if not already
 # Flask-related imports
 from flask import (
     Flask, render_template, request, redirect, url_for,
@@ -17,8 +19,20 @@ from flask_login import (
     logout_user, current_user
 )
 from flask_migrate import Migrate
+from flask_wtf import CSRFProtect  # ✅ last of flask-related imports
 
 # PDF library (if needed)
+import requests  # ✅ Add here
+
+def is_ghana_ip(ip_address):
+    try:
+        response = requests.get(f"https://ipapi.co/{ip_address}/country_name/")
+        if response.status_code == 200:
+            country = response.text.strip()
+            return country.lower() == "ghana"
+    except Exception as e:
+        print(f"Geolocation check failed: {e}")
+    return False
 
 # Local modules
 from extensions import db, login_manager
@@ -32,9 +46,23 @@ from utils import generate_unique_pin_code
 # Load environment variables
 load_dotenv()
 app = Flask(__name__)
+@app.before_request
+def block_non_ghana_visitors():
+    # Allow local dev IPs like 127.0.0.1 or ::1
+    if request.remote_addr in ('127.0.0.1', '::1'):
+        return
 
+    # Skip IP check for static files and favicon
+    if request.endpoint in ('static',):
+        return
+
+    if not is_ghana_ip(request.remote_addr):
+        return render_template('access_denied.html'), 403
 # ✅ Manually set the secret key for session and CSRF protection
-app.secret_key = 'gfh34@!kdj983laksdnjgfhkjsd8304nvks'
+app.secret_key ='gfh34@!kdj983laksdnjgfh304nvks'
+
+
+csrf = CSRFProtect(app)  #
 
 # ✅ If you're using environment variables for the database, keep this line
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
@@ -84,8 +112,9 @@ def home():
     return redirect(url_for('enter_pin'))
 @app.route('/enter_pin', methods=['GET', 'POST'])
 def enter_pin():
-    if request.method == 'POST':
-        pin_code = request.form.get('pin_code', '').strip()
+    form = PinCodeForm()
+    if form.validate_on_submit():
+        pin_code = form.pin_code.data.strip()
 
         employee = Employee.query.filter_by(pin_code=pin_code).first()
         if employee:
@@ -94,7 +123,7 @@ def enter_pin():
         else:
             flash('Invalid PIN code.', 'danger')
 
-    return render_template('enter_pin.html')
+    return render_template('enter_pin.html', form=form)
 @app.route('/employee/login', methods=['GET', 'POST'])
 def employee_login():
     # STEP 1: Block access if no valid pin was entered
@@ -224,46 +253,18 @@ def add_employee():
         return redirect(url_for('home'))
 
     return render_template('add_employee.html', form=form)            
-@app.route('/consent_form/<int:request_id>', methods=['GET', 'POST'])
-@login_required
-def consent_form(request_id):
-    salary_request = SalaryAdvanceRequest.query.get_or_404(request_id)
-    employee = Employee.query.get_or_404(salary_request.employee_id)
-
-    if request.method == 'POST':
-        if request.form.get("agree") == "on":
-            signed_name = request.form.get("signed_name") or employee.full_name  # Fallback
-
-            salary_request.consent_given = True
-            salary_request.consent_date = datetime.utcnow()
-            salary_request.signed_name = signed_name
-
-            db.session.commit()
-            flash("Consent submitted successfully.", "success")
-            return redirect(url_for('thank_you'))
-        else:
-            flash("You must agree to the terms before submitting.", "danger")
-
-    # ✅ Pass current_date to template
-    return render_template(
-        'consent_form.html',
-        request=salary_request,
-        employee=employee,
-        current_date=datetime.utcnow()
-    )
 @app.route('/request_advance', methods=['GET', 'POST'])
 @login_required
 def request_advance():
-    if request.method == 'POST':
-        amount = float(request.form['amount'])
-
-        if amount < 200 or amount > 500:
-            flash("Amount must be between 200 and 500 cedis.", "danger")
-            return render_template('request_advance.html')
+    form = SalaryAdvanceRequestForm()
+    if form.validate_on_submit():
+        amount = form.amount.data
+        reason = form.reason.data
 
         new_request = SalaryAdvanceRequest(
             employee_id=current_user.id,
             amount=amount,
+            reason=reason,
             date_submitted=datetime.utcnow(),
             status='Pending'
         )
@@ -272,7 +273,7 @@ def request_advance():
 
         return redirect(url_for('consent_form', request_id=new_request.id))
 
-    return render_template('request_advance.html')
+    return render_template('request_advance.html', form=form)
 @app.route('/salary_requests')
 @login_required
 @admin_required
@@ -294,6 +295,32 @@ def view_salary_requests():
     requests_paginated = query.order_by(SalaryAdvanceRequest.date_submitted.desc()).paginate(page=page, per_page=10)
     
     return render_template('view_salary_requests.html', requests=requests_paginated, search=search)
+@app.route('/consent_form/<int:request_id>', methods=['GET', 'POST'])
+@login_required
+def consent_form(request_id):
+    salary_request = SalaryAdvanceRequest.query.get_or_404(request_id)
+    employee = Employee.query.get_or_404(salary_request.employee_id)
+
+    form = ConsentForm()
+
+    if form.validate_on_submit():
+        salary_request.consent_given = True
+        salary_request.consent_date = datetime.utcnow()
+        salary_request.signed_name = form.signed_name.data or employee.full_name
+
+        db.session.commit()
+        flash("Consent submitted successfully.", "success")
+        return redirect(url_for('thank_you'))
+    elif request.method == 'GET':
+        form.signed_name.data = employee.full_name  # Pre-fill hidden field
+
+    return render_template(
+        'consent_form.html',
+        form=form,
+        request=salary_request,
+        employee=employee,
+        current_date=datetime.utcnow()
+    )
 @app.route('/approve/<int:request_id>', methods=['POST'])
 @login_required
 def approve_request(request_id):

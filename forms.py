@@ -2,6 +2,10 @@ from datetime import datetime
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, FloatField
 from wtforms.validators import DataRequired, Length, NumberRange
+from flask_wtf import FlaskForm
+from wtforms import BooleanField, HiddenField, SubmitField
+from wtforms.validators import DataRequired
+
 
 class LoginForm(FlaskForm):
     full_name = StringField('Full Name', validators=[DataRequired()])
@@ -48,3 +52,10 @@ class EmployeeRegistrationForm(FlaskForm):
     bank_name = StringField('Bank Name', validators=[DataRequired()])
     bank_account_number = StringField('Bank Account Number', validators=[DataRequired()])
     submit = SubmitField('Register Employee')
+class PinCodeForm(FlaskForm):
+    pin_code = StringField('PIN Code', validators=[DataRequired()])
+    submit = SubmitField('Continue')
+class ConsentForm(FlaskForm):
+    signed_name = HiddenField('Signed Name')
+    agree = BooleanField('I agree to the terms', validators=[DataRequired()])
+    submit = SubmitField('Submit Consent')

@@ -28,11 +28,16 @@
                         {% endwith %}
 
                         <form method="POST" action="{{ url_for('enter_pin') }}">
+                            {{ form.hidden_tag() }}
+
                             <div class="mb-3">
-                                <label for="pin_code" class="form-label">PIN Code</label>
-                                <input type="text" name="pin_code" id="pin_code" class="form-control" required placeholder="Enter your assigned PIN">
+                                {{ form.pin_code.label(class="form-label") }}
+                                {{ form.pin_code(class="form-control", placeholder="Enter your assigned PIN") }}
                             </div>
-                            <button type="submit" class="btn btn-primary w-100">Continue</button>
+
+                            <div class="d-grid">
+                                {{ form.submit(class="btn btn-primary w-100") }}
+                            </div>
                         </form>
 
                     </div>

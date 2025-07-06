@@ -35,16 +35,29 @@
             Why borrow from friends when you can get a digital salary advance — protect your dignity and peace of mind.
         </div>
 
-        <form method="POST" class="card p-4 shadow-sm">
-            <div class="mb-3">
-                <label for="amount" class="form-label">Amount (GHS 200 – 500)</label>
-                <input type="number" name="amount" id="amount" class="form-control form-control-lg" min="200" max="500" required>
-            </div>
-            <div class="d-grid">
-                <button type="submit" class="btn btn-primary btn-lg">🚀 Submit Request Now</button>
-            </div>
-        </form>
+       <form method="POST" class="card p-4 shadow-sm">
+    {{ form.hidden_tag() }}
 
+    <div class="mb-3">
+        {{ form.amount.label(class="form-label") }}
+        {{ form.amount(class="form-control form-control-lg", min=200, max=500) }}
+        {% for error in form.amount.errors %}
+            <div class="text-danger">{{ error }}</div>
+        {% endfor %}
+    </div>
+
+    <div class="mb-3">
+        {{ form.reason.label(class="form-label") }}
+        {{ form.reason(class="form-control form-control-lg") }}
+        {% for error in form.reason.errors %}
+            <div class="text-danger">{{ error }}</div>
+        {% endfor %}
+    </div>
+
+    <div class="d-grid">
+        {{ form.submit(class="btn btn-primary btn-lg") }}
+    </div>
+</form>
         <div class="text-center mt-4">
             <a href="{{ url_for('employee_dashboard') }}" class="btn btn-outline-secondary">← Back to Dashboard</a>
         </div>
