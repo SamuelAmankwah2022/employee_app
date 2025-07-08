@@ -20,7 +20,9 @@ from flask_login import (
 )
 from flask_migrate import Migrate
 from flask_wtf import CSRFProtect  # ✅ last of flask-related imports
-
+import logging
+from logging.handlers import RotatingFileHandler
+import os
 # PDF library (if needed)
 import requests  # ✅ Add here
 
@@ -46,6 +48,23 @@ from utils import generate_unique_pin_code
 # Load environment variables
 load_dotenv()
 app = Flask(__name__)
+
+# ✅ Set up logging (right after creating the app)
+if not os.path.exists('logs'):
+    os.mkdir('logs')
+
+file_handler = RotatingFileHandler('logs/app.log', maxBytes=10240, backupCount=5)
+file_handler.setFormatter(logging.Formatter(
+    '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+))
+file_handler.setLevel(logging.INFO)
+
+app.logger.addHandler(file_handler)
+app.logger.setLevel(logging.INFO)
+app.logger.info('App startup')
+
+
+# ✅ Restrict non-Ghana visitors
 @app.before_request
 def block_non_ghana_visitors():
     # Allow local dev IPs like 127.0.0.1 or ::1
@@ -57,6 +76,7 @@ def block_non_ghana_visitors():
         return
 
     if not is_ghana_ip(request.remote_addr):
+        app.logger.warning(f"Blocked IP: {request.remote_addr}")
         return render_template('access_denied.html'), 403
 # ✅ Manually set the secret key for session and CSRF protection
 app.secret_key ='gfh34@!kdj983laksdnjgfh304nvks'
@@ -474,6 +494,12 @@ def create_test_admin_once():
         else:
             print("ℹ️ Test admin already exists.")
         admin_created = True
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('404.html'), 404
 
+@app.errorhandler(500)
+def internal_server_error(error):
+    return render_template('500.html'), 500
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
